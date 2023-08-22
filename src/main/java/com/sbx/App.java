@@ -1,6 +1,7 @@
 package com.sbx;
 
 import org.flowable.engine.*;
+import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.runtime.ProcessInstance;
@@ -8,6 +9,7 @@ import org.flowable.task.api.Task;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -156,5 +158,27 @@ public class App
                 .taskDefinitionKey("holidayApprovedTask")
                 .singleResult();
         taskService.complete(task.getId());
+    }
+
+    /**
+     * 查询历史记录
+     */
+    @Test
+    public void getHistory() {
+        // 配置数据库相关信息 获取 ProcessEngineConfiguration
+        ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
+                .setJdbcUrl("jdbc:mysql://localhost:3307/flowable-test?serverTimezone=UTC&nullCatalogMeansCurrent=true")
+                .setJdbcUsername("root")
+                .setJdbcPassword("root")
+                .setJdbcDriver("com.mysql.cj.jdbc.Driver")
+                .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
+        // 获取流程引擎对象
+        ProcessEngine processEngine = cfg.buildProcessEngine();
+        List<ProcessInstance> list = processEngine.getRuntimeService().createProcessInstanceQuery().list();
+        System.out.println(list);
+        List<HistoricActivityInstance> activities = processEngine.getHistoryService().createHistoricActivityInstanceQuery()
+                .processInstanceId(list.get(0).getId())
+                .list();
+        System.out.println(activities);
     }
 }
